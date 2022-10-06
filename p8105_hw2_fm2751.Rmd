@@ -92,10 +92,12 @@ Mrtrashwheel =
   mutate(sports_balls = as.integer(round(sports_balls))) %>%
   mutate(prefix = "Mr") %>%
   mutate(year = as.numeric(year))
+
+Mrtrashwheel
 ```
 
 ```{r Prof.trashwheel, message=FALSE}
-ProfTrashwheel = 
+Proftrashwheel = 
   read_excel(
     "Data_hw2/Trash Wheel Collection Data.xlsx",
     sheet = "Professor Trash Wheel",
@@ -104,12 +106,35 @@ ProfTrashwheel =
   filter(dumpster != "NA") %>%
   mutate(prefix = "Prof") %>%
   mutate(year = as.numeric(year))
+
+Proftrashwheel
 ```
 
 ```{r merge, message=FALSE}
 trash_complete = 
-  full_join(Mrtrashwheel, ProfTrashwheel, by = c("dumpster","month","year","date","weight_tons","volume_cubic_yards","plastic_bottles","polystyrene","cigarette_butts","glass_bottles", "grocery_bags", "chip_bags", "homes_powered","prefix"))
+  full_join(Mrtrashwheel, Proftrashwheel, by = c("dumpster","month","year","date","weight_tons","volume_cubic_yards","plastic_bottles","polystyrene","cigarette_butts","glass_bottles", "grocery_bags", "chip_bags", "homes_powered","prefix"))
+
+trash_complete
 ```
+
+```{r tot weight, message=FALSE}
+trash_complete %>%
+  filter(prefix == "Prof") %>%
+  summarise(total_weight = sum(weight_tons))
+```
+
+```{r tot balls, message=FALSE}
+trash_complete %>%
+  filter(prefix == "Mr" & year =="2020") %>%
+  summarise(total_balls = sum(sports_balls))
+```
+
+## Description:
+There are 641 observations in the resulting dataset (named as "trash_complete"). This dataset contains several key variables, for example: weight of trash in tons, number of sports balls and date.
+
+## Answer:
+* The total weight of trash collected by Professor Trash Wheel is 190 tons.
+* The total number of sports balls collected by Mr. Trash Wheel in 2020 is 856.
 
 # Problem 3
 ```{r pol-month, message=FALSE}
@@ -159,4 +184,10 @@ pol_snp_unemployment =
   left_join(pols_month_snp, unemployment, by = c("year", "month"))
 ```
 
+```{r range, message=FALSE}
+range(pull(pol_snp_unemployment, var = 1))
+```
+
+## Description:
+The pol-month dataset contains 822 observations and 9 variavles. This dataset contains key information variables like year, month and president. The snp dataset contains 787 observations and 3 variavles, they are year, month and close. The unemployment dataset contains 816 observations and 3 variables, they are year, month, unemployment. The resulting dataset (named as "pol_snp_unemployment") is a summary of the above 3 datasets. It contains 822 observationa and 11 variables (822 rows × 11 columns). This dataset contains data from year 1947 to year 2015. Key variables include year, month, president, unemployment and close. There are some missing values in this dataset due to incomplete information.
 
