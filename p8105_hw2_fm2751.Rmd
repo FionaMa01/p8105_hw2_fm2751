@@ -1,0 +1,85 @@
+---
+title: "p8105_hw2_fm2751"
+output: github_document
+date: "2022-10-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load useful libraries first!
+```{r load_libraries}
+library(tidyverse)
+library(readxl)
+```
+
+# Problem 0
+Public GitHub repo, local R Project, subdirectory for data, and .Rmd file created and rendered to github_document.
+
+# Problem 1
+Read and clean the data, convert the entry variable from character (YES vs NO) to a logical variable
+```{r}
+trans_ent = 
+  read_csv(
+    "Data_hw2/NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
+    col_types = cols(Route8 = "c", Route9 = "c", Route10 = "c", Route11 = "c")) %>% 
+  janitor::clean_names() %>% 
+  select(
+    line, station_name, station_latitude, station_longitude, 
+    starts_with("route"), entry, exit_only, vending, entrance_type, 
+    ada) %>% 
+  mutate(entry = ifelse(entry == "YES", TRUE, FALSE))
+```
+* Description of the dataset:
+the dataset contains retain lines and station names, their longitude and latitude, the routes they have, information about entry and entrance type, if they are exit only, if they have vending machine and if it is ADA compliant.
+* The process begins with data import, updates variable names, and selects the columns that will be used in later parts fo this problem. We update `entry` from `yes` / `no` to a logical variable.
+* These data are not tidy
+* dimension of the resulting dataset: 1868 rows and 20 columns.
+```{r distinct stations}
+trans_ent %>% 
+  select(station_name, line) %>% 
+  distinct
+```
+* there are 465 distinct stations.
+```{r distinct stations with ADA}
+trans_ent %>% 
+  filter(ada == TRUE) %>% 
+  select(station_name, line) %>% 
+  distinct
+```
+* 84 stations are ADA compliant.
+```{r}
+trans_ent %>% 
+  filter(vending == "NO") %>% 
+  pull(entry) %>% 
+  mean
+```
+* 37.70% of station entrances / exits without vending allow entrance.
+```{r}
+trans_ent %>% 
+  pivot_longer(
+    route1:route11,
+    names_to = "route_num",
+    values_to = "route") %>% 
+  filter(route == "A") %>% 
+  select(station_name, line) %>% 
+  distinct
+
+trans_ent %>% 
+  pivot_longer(
+    route1:route11,
+    names_to = "route_num",
+    values_to = "route") %>% 
+  filter(route == "A", ada == TRUE) %>% 
+  select(station_name, line) %>% 
+  distinct
+```
+* 60 distinct stations serve the A train. Among stations that serve the A train, 17 many are ADA compliant.
+
+
+# Problem 2
+```{r}
+
+```
+
