@@ -9,9 +9,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Load useful libraries first!
-```{r load_libraries}
+```{r load_libraries, message=FALSE}
 library(tidyverse)
 library(readxl)
+library(lubridate)
 ```
 
 # Problem 0
@@ -79,7 +80,83 @@ trans_ent %>%
 
 
 # Problem 2
-```{r}
 
+```{r Mr.trashwheel, message=FALSE}
+Mrtrashwheel = 
+  read_excel(
+    "Data_hw2/Trash Wheel Collection Data.xlsx",
+    sheet = "Mr. Trash Wheel",
+    range = "A2:N550") %>% 
+  janitor::clean_names() %>% 
+  filter(dumpster != "NA") %>% 
+  mutate(sports_balls = as.integer(round(sports_balls))) %>%
+  mutate(prefix = "Mr") %>%
+  mutate(year = as.numeric(year))
 ```
+
+```{r Prof.trashwheel, message=FALSE}
+ProfTrashwheel = 
+  read_excel(
+    "Data_hw2/Trash Wheel Collection Data.xlsx",
+    sheet = "Professor Trash Wheel",
+    range = "A2:N97") %>% 
+  janitor::clean_names() %>% 
+  filter(dumpster != "NA") %>%
+  mutate(prefix = "Prof") %>%
+  mutate(year = as.numeric(year))
+```
+
+```{r merge, message=FALSE}
+trash_complete = 
+  full_join(Mrtrashwheel, ProfTrashwheel, by = c("dumpster","month","year","date","weight_tons","volume_cubic_yards","plastic_bottles","polystyrene","cigarette_butts","glass_bottles", "grocery_bags", "chip_bags", "homes_powered","prefix"))
+```
+
+# Problem 3
+```{r pol-month, message=FALSE}
+pols_month = 
+  read.csv("Data_hw2/fivethirtyeight_datasets/pols-month.csv") %>%
+  separate(mon, into = c("year", "month", "day"), sep = "-") %>%
+  mutate(month = month.name[as.numeric(month)]) %>%
+  pivot_longer(
+    prez_gop | prez_dem,
+    names_to = "president",
+    names_prefix = "prez_",
+    values_to = "gop_or_dem") %>%
+  filter(gop_or_dem != 0) %>%
+  select(!day & !gop_or_dem) %>%
+  relocate(year, month, president, everything())
+```
+
+```{r snp, message=FALSE}
+snp =
+  read.csv("Data_hw2/fivethirtyeight_datasets/snp.csv") %>%
+  mutate(date = mdy(date)) %>%
+  separate(date, into = c("year", "month", "day"), sep = "-") %>%
+  mutate(year = ifelse(as.numeric(year)>2049, as.numeric(year)-100, year)) %>%
+  mutate(month = month.name[as.numeric(month)]) %>%
+  select(!day) %>%
+  relocate(year, month, everything())
+```
+
+```{r unemployment, message=FALSE}
+unemployment =
+  read.csv("Data_hw2/fivethirtyeight_datasets/unemployment.csv") %>%
+  pivot_longer(
+    Jan:Dec,
+    names_to = "month",
+    values_to = "unemployment") %>%
+  janitor::clean_names()
+```
+
+```{r pols-month_snp, message=FALSE}
+pols_month_snp =
+  left_join(pols_month, snp, by = c("year", "month")) %>%
+  mutate(year = as.numeric(year))
+```
+
+```{r pols-month-unemployment, message=FALSE}
+pol_snp_unemployment =
+  left_join(pols_month_snp, unemployment, by = c("year", "month"))
+```
+
 
